@@ -41,4 +41,7 @@ _testmain.go
 # VS Code directories
 .vscode/
 
+# Database files
+database.yml
+
 # End of .gitignore
