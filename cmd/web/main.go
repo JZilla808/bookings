@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/JZilla808/bookings/internal/config"
+	"github.com/JZilla808/bookings/internal/driver"
 	"github.com/JZilla808/bookings/internal/handlers"
 	"github.com/JZilla808/bookings/internal/helpers"
 	"github.com/JZilla808/bookings/internal/models"
@@ -25,11 +26,13 @@ var errorLog *log.Logger
 
 // main is the main function
 func main() {
-	err := run()
+	db, err := run()
 
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	defer db.SQL.Close()
 
 	fmt.Println(fmt.Sprintf("Staring application on port %s", portNumber))
 
@@ -44,17 +47,20 @@ func main() {
 	}
 }
 
-func run() error {
+func run() (*driver.DB, error) {
 
 	// What am I going to put in the session
 	gob.Register(models.Reservation{})
+	gob.Register(models.User{})
+	gob.Register(models.Room{})
+	gob.Register(models.Restriction{})
 
 	// change this to true when in production
 	app.InProduction = false
 
 	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	app.InfoLog = infoLog
-	
+
 	errorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 	app.ErrorLog = errorLog
 
@@ -67,19 +73,28 @@ func run() error {
 
 	app.Session = session
 
+	// connect to database
+	log.Println("Connecting to databse...")
+	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=bookings user=jbeazy password=")
+	if err != nil {
+		log.Fatal("Cannot connect to database!")
+	}
+
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
 		log.Fatal("cannot create template cache")
-		return err
+		return nil, err
 	}
+	log.Println("Connected to database!")
 
 	app.TemplateCache = tc
 	app.UseCache = false
 
-	repo := handlers.NewRepo(&app)
+	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)
-	render.NewTemplates(&app)
+	render.NewRenderer(&app)
 	helpers.NewHelpers(&app)
 
-	return nil
+	return db, nil
 }
+ 
