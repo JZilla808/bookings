@@ -44,4 +44,7 @@ _testmain.go
 # Database files
 database.yml
 
+# Environment variables file
+.env
+
 # End of .gitignore

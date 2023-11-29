@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/gob"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"github.com/JZilla808/bookings/internal/models"
 	"github.com/JZilla808/bookings/internal/render"
 	"github.com/alexedwards/scs/v2"
+	"github.com/joho/godotenv"
 )
 
 const portNumber = ":8080"
@@ -53,6 +55,11 @@ func main() {
 }
 
 func run() (*driver.DB, error) {
+	// Load environment variables from .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	// What am I going to put in the session
 	gob.Register(models.Reservation{})
@@ -61,17 +68,49 @@ func run() (*driver.DB, error) {
 	gob.Register(models.Restriction{})
 	gob.Register(map[string]int{})
 
+	// read flags
+	inProduction := flag.Bool("production", true, "Application is in production")
+	useCache := flag.Bool("cache", true, "Use template cache")
+
+	// dbHost := flag.String("dbhost", "localhost", "Database host")
+	// dbName := flag.String("dbname", "", "Database name")
+	// dbUser := flag.String("dbuser", "", "Database user")
+	// dbPass := flag.String("dbpass", "", "Database password")
+	// dbPort := flag.String("dbport", "5432", "Database port")
+	// dbSSL := flag.String("dbssl", "disable", "Database ssl settings (disable, prefer, require)")
+
+	// Use os.Getenv to read the environment variables
+	dbHost := os.Getenv("DB_HOST")
+	dbName := os.Getenv("DB_NAME")
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+	dbPort := os.Getenv("DB_PORT")
+	dbSSL := os.Getenv("DB_SSL")
+
+	// parse flags
+	flag.Parse()
+
+	// if *dbName == "" || *dbUser == "" {
+	// 	fmt.Println("Missing required flags")
+	// 	os.Exit(1)
+	// }
+
 	mailChan := make(chan models.MailData)
 	app.MailChan = mailChan
 
 	// change this to true when in production
-	app.InProduction = false
+	app.InProduction = *inProduction
+	app.UseCache = *useCache
 
 	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	app.InfoLog = infoLog
 
 	errorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 	app.ErrorLog = errorLog
+
+	// log the parameters used for InProduction and UseCache
+	infoLog.Printf("InProduction: %t", app.InProduction)
+	infoLog.Printf("UseCache: %t", app.UseCache)
 
 	// set up the session
 	session = scs.New()
@@ -84,7 +123,8 @@ func run() (*driver.DB, error) {
 
 	// connect to database
 	log.Println("Connecting to databse...")
-	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=bookings user=jbeazy password=")
+	connectionString := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=%s", dbHost, dbPort, dbName, dbUser, dbPass, dbSSL)
+	db, err := driver.ConnectSQL(connectionString)
 	if err != nil {
 		log.Fatal("Cannot connect to database!")
 	}
@@ -97,7 +137,6 @@ func run() (*driver.DB, error) {
 	log.Println("Connected to database!")
 
 	app.TemplateCache = tc
-	app.UseCache = false
 
 	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)
