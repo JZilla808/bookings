@@ -22,6 +22,9 @@ func listenForMail() {
 }
 
 func sendMsg(m models.MailData) {
+	// TODO: set up dev and prod SMTP servers according to the isProduction flag
+
+	// SMTP server configuration for local development with MailHog
 	server := mail.NewSMTPClient()
 	server.Host = "localhost"
 	server.Port = 1025
