@@ -1,0 +1,19 @@
+<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- Background Circle -->
+    <circle cx="50" cy="50" r="50" fill="#f8c291" />
+
+    <!-- Bed Base -->
+    <rect x="20" y="40" width="60" height="20" fill="#6c5b7b" />
+
+    <!-- Pillow -->
+    <rect x="22" y="37" width="26" height="10" fill="#fff" />
+
+    <!-- Breakfast Tray -->
+    <rect x="55" y="35" width="20" height="10" fill="#355c7d" />
+    <line x1="55" y1="35" x2="75" y2="35" stroke="#000" stroke-width="0.5" />
+    <line x1="55" y1="45" x2="75" y2="45" stroke="#000" stroke-width="0.5" />
+
+    <!-- Tray Legs -->
+    <line x1="58" y1="45" x2="58" y2="50" stroke="#000" stroke-width="0.5" />
+    <line x1="72" y1="45" x2="72" y2="50" stroke="#000" stroke-width="0.5" />
+</svg>
