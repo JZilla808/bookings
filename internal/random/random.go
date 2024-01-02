@@ -38,21 +38,26 @@ func generateAndCommit(location *time.Location) {
 	// Generate a random number between 5 and 18
 	count := generateCount()
 
-	// Load existing data from numbers.json
+	// Load or Initialize numbers.json
 	var data LotteryData
-	file, err := os.ReadFile("numbers.json")
-	if err != nil {
-		fmt.Println("Error reading numbers.json:", err)
-		return
-	}
-	if err := json.Unmarshal(file, &data); err != nil {
-		fmt.Println("Error unmarshaling numbers.json:", err)
-		return
+	file, err := os.ReadFile("./internal/random/numbers.json")
+	if err != nil || len(file) == 0 || json.Unmarshal(file, &data) != nil {
+		fmt.Println("Initializing new numbers.json file")
+		data = LotteryData{
+			RandomNumbers: make(map[string]map[string][]int),
+		}
+		// Immediately create or update the file
+		if err := saveNumbersJSON(&data); err != nil {
+			fmt.Println("Error saving initialized numbers.json:", err)
+			return
+		}
 	}
 
 	for i := 0; i < count; i++ {
-		waitTime := rand.Intn(41) + 10 // 10 to 50
-		time.Sleep(time.Duration(waitTime) * time.Minute)
+		// Wait for a random time between 5 to 9 seconds
+		waitTime := rand.Intn(5) + 5 // 5 to 9
+		fmt.Printf("Waiting for %d seconds...\n", waitTime)
+		time.Sleep(time.Duration(waitTime) * time.Second)
 
 		lotteryNumbers := generateLotteryNumbers()
 
@@ -70,19 +75,24 @@ func generateAndCommit(location *time.Location) {
 		fmt.Printf("Generated numbers for %s at %s: %v\n", dateStr, timeStr, lotteryNumbers)
 	}
 
-	updatedFile, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		fmt.Println("Error marshaling JSON:", err)
-		return
-	}
-	if err := os.WriteFile("numbers.json", updatedFile, 0644); err != nil {
-		fmt.Println("Error writing numbers.json:", err)
+	// Save the updated numbers.json
+	if err := saveNumbersJSON(&data); err != nil {
+		fmt.Println("Error saving numbers.json:", err)
 		return
 	}
 
 	commitAndPush()
 
 	fmt.Println("Lottery number generation and commit process completed.")
+}
+
+// saveNumbersJSON saves the LotteryData to numbers.json
+func saveNumbersJSON(data *LotteryData) error {
+	updatedFile, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return err
+	}
+	return os.WriteFile("./internal/random/numbers.json", updatedFile, 0644)
 }
 
 // generateLotteryNumbers generates a set of lottery numbers
@@ -101,7 +111,7 @@ func commitAndPush() {
 	commitMessage := "Update lottery numbers"
 
 	// Execute Git commands
-	if err := executeGitCommand("git", "add", "numbers.json"); err != nil {
+	if err := executeGitCommand("git", "add", "./internal/random/numbers.json"); err != nil {
 		fmt.Println("Error staging changes:", err)
 		return
 	}

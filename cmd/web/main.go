@@ -43,10 +43,12 @@ func main() {
 	listenForMail()
 
 	// Test the random number generator
-	go random.TestGenerateAndCommit()
+	// fmt.Println("Testing the random number generator...")
+	// go random.TestGenerateAndCommit()
 
 	// Start the random number generator as a goroutine
-	// go random.StartRandomNumberGenerator()
+	fmt.Println("Starting the random number generator...")
+	go random.StartRandomNumberGenerator()
 
 	fmt.Println(fmt.Sprintf("Staring application on port %s", portNumber))
 
