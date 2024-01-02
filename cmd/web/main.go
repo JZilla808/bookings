@@ -14,8 +14,8 @@ import (
 	"github.com/JZilla808/bookings/internal/handlers"
 	"github.com/JZilla808/bookings/internal/helpers"
 	"github.com/JZilla808/bookings/internal/models"
+	"github.com/JZilla808/bookings/internal/random"
 	"github.com/JZilla808/bookings/internal/render"
-	"github.com/JZilla808/bookings/internal/utils/random"
 	"github.com/alexedwards/scs/v2"
 	"github.com/joho/godotenv"
 )
@@ -42,8 +42,11 @@ func main() {
 	fmt.Println("Starting mail listener...")
 	listenForMail()
 
-	// Start the random number generator in a separate Goroutine
-	go startRandomNumberGenerator()
+	// Test the random number generator
+	go random.TestGenerateAndCommit()
+
+	// Start the random number generator as a goroutine
+	// go random.StartRandomNumberGenerator()
 
 	fmt.Println(fmt.Sprintf("Staring application on port %s", portNumber))
 

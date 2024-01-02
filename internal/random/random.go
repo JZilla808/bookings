@@ -40,7 +40,7 @@ func generateAndCommit(location *time.Location) {
 
 	// Load existing data from numbers.json
 	var data LotteryData
-	file, err := os.ReadFile("internal/utils/numbers.json")
+	file, err := os.ReadFile("numbers.json")
 	if err != nil {
 		fmt.Println("Error reading numbers.json:", err)
 		return
@@ -75,7 +75,7 @@ func generateAndCommit(location *time.Location) {
 		fmt.Println("Error marshaling JSON:", err)
 		return
 	}
-	if err := os.WriteFile("internal/utils/numbers.json", updatedFile, 0644); err != nil {
+	if err := os.WriteFile("numbers.json", updatedFile, 0644); err != nil {
 		fmt.Println("Error writing numbers.json:", err)
 		return
 	}
@@ -101,7 +101,7 @@ func commitAndPush() {
 	commitMessage := "Update lottery numbers"
 
 	// Execute Git commands
-	if err := executeGitCommand("git", "add", "internal/utils/numbers.json"); err != nil {
+	if err := executeGitCommand("git", "add", "numbers.json"); err != nil {
 		fmt.Println("Error staging changes:", err)
 		return
 	}
@@ -126,7 +126,7 @@ func executeGitCommand(command ...string) error {
 }
 
 // testGenerateAndCommit is a manual test function for generateAndCommit
-func testGenerateAndCommit() {
+func TestGenerateAndCommit() {
 	location, err := time.LoadLocation("America/Los_Angeles")
 	if err != nil {
 		fmt.Println("Error loading location:", err)
